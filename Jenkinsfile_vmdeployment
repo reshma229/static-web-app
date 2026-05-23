@@ -1,5 +1,12 @@
 pipeline{
     agent any
+    environment{
+        git_credentials = credentials('github_credentials')
+        SSH_KEY = credentials('nginx_server_sshkey')
+        nginx_server_ip = '172.31.5.129'
+        ssh_user = 'ec2-user'
+        nginx_html_path = '/usr/share/nginx/html/'
+    }
     stages{
         stage('checkout code'){
            steps{
@@ -8,13 +15,14 @@ pipeline{
         }  
         stage('deploy vm'){
             steps{
-                sshagent(['nginx_server_sshkey']) {
+                sshagent([${nginx_server_sshkey}]) {
                     sh """
                     echo 'Deploying to Nginx server...'
-                    ssh -o StrictHostKeyChecking=no ec2-user@172.31.5.129 sudo rm -rf /usr/share/nginx/html/*
-                    scp -o StrictHostKeyChecking=no -r ./* ec2-user@172.31.5.129:/usr/share/nginx/html/
+                    ssh -o StrictHostKeyChecking=no ${ssh_user}@${nginx_server_ip} 'sudo rm -rf ${nginx_html_path}*'
+                    scp -o StrictHostKeyChecking=no -r ./* ${ssh_user}@${nginx_server_ip}:${nginx_html_path}
                     echo 'Restarting Nginx service...'
-                    ssh -o StrictHostKeyChecking=no ec2-user@172.31.5.129 sudo systemctl restart nginx
+                    sleep 15
+                    ssh  ${ssh_user}@${nginx_server_ip} 'sudo systemctl restart nginx'
                     """
                     }
 
@@ -26,4 +34,4 @@ pipeline{
             cleanws()
         }
     }
-}    
+}   

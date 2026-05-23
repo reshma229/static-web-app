@@ -10,20 +10,20 @@ pipeline{
             steps{
                 sshagent(['nginx_server_sshkey']) {
                     sh """
-                    echo "Deploying to Nginx server..."
+                    echo 'Deploying to Nginx server...'
                     ssh -o StrictHostKeyChecking=no ec2-user@172.31.5.129 sudo rm -rf /usr/share/nginx/html/*
-                    scp -o StrictHostKeyChecking=no -r * ec2-user@172.31.5.129:/usr/share/nginx/html/
-                    echo "Restarting Nginx service..."
+                    scp -o StrictHostKeyChecking=no -r ./* ec2-user@172.31.5.129:/usr/share/nginx/html/
+                    echo 'Restarting Nginx service...'
                     ssh -o StrictHostKeyChecking=no ec2-user@172.31.5.129 sudo systemctl restart nginx
-                }
-            }
+                    """
+                    }
 
+                }
+            }    
         }
-    }
     post{
         always{
             cleanws()
         }
     }
-}
-
+}    

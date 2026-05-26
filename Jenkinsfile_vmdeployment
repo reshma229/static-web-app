@@ -1,27 +1,27 @@
-pipeline{
+pipeline {
     agent any
-    environment{
-        SSH_KEY = 'nginx_server_sshkey'
+    environment {
+        nginx_server_sshkey = 'nginx_server_sshkey'
         nginx_server_ip = '172.31.5.129'
         ssh_user = 'ec2-user'
         nginx_html_path = '/usr/share/nginx/html/'
     }
-    triggers{
+    triggers {
         githubPush()
     }
-    options{
+    options {
         timeout(time: 30, unit: 'MINUTES')
-        buildDiscarder(logRotator(numToKeepStr: '10', daysToKeepStr: '30'))
+        buildDiscarder(logRotator(numToKeepStr: '5', daysToKeepStr: '30'))
     }
-    stages{
-        stage('checkout code'){
-           steps{
+    stages {
+        stage('checkout code') {
+           steps {
                 checkout scm
             }
         }  
-        stage('deploy vm'){
-            steps{
-                sshagent([${nginx_server_sshkey}]) {
+        stage('deploy vm') {
+            steps {
+                sshagent(["${nginx_server_sshkey}"]) {
                     sh """
                     echo 'Deploying to Nginx server...'
                     ssh -o StrictHostKeyChecking=no ${ssh_user}@${nginx_server_ip} 'sudo rm -rf ${nginx_html_path}*'    
@@ -35,8 +35,8 @@ pipeline{
                 }
             }    
         }
-    post{
-        always{
+    post {
+        always {
             cleanWs()
         }
     }

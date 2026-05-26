@@ -7,6 +7,13 @@ pipeline{
         ssh_user = 'ec2-user'
         nginx_html_path = '/usr/share/nginx/html/'
     }
+    triggers{
+        githubPush()
+    }
+    options{
+        timeout(time: 30, unit: 'MINUTES')
+        buildDiscarder(logRotator(numToKeepStr: '10', daysToKeepStr: '30'))
+    }
     stages{
         stage('checkout code'){
            steps{
@@ -18,7 +25,7 @@ pipeline{
                 sshagent([${nginx_server_sshkey}]) {
                     sh """
                     echo 'Deploying to Nginx server...'
-                    ssh -o StrictHostKeyChecking=no ${ssh_user}@${nginx_server_ip} 'sudo rm -rf ${nginx_html_path}*'
+                    ssh -o StrictHostKeyChecking=no ${ssh_user}@${nginx_server_ip} 'sudo rm -rf ${nginx_html_path}*'    
                     scp -o StrictHostKeyChecking=no -r ./* ${ssh_user}@${nginx_server_ip}:${nginx_html_path}
                     echo 'Restarting Nginx service...'
                     sleep 15
@@ -31,7 +38,7 @@ pipeline{
         }
     post{
         always{
-            cleanws()
+            cleanWs()
         }
     }
 }   

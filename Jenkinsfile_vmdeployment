@@ -1,8 +1,7 @@
 pipeline{
     agent any
     environment{
-        git_credentials = credentials('github_credentials')
-        SSH_KEY = credentials('nginx_server_sshkey')
+        SSH_KEY = 'nginx_server_sshkey'
         nginx_server_ip = '172.31.5.129'
         ssh_user = 'ec2-user'
         nginx_html_path = '/usr/share/nginx/html/'
@@ -17,7 +16,7 @@ pipeline{
     stages{
         stage('checkout code'){
            steps{
-                checkout scm
+                Checkout scm
             }
         }  
         stage('deploy vm'){
